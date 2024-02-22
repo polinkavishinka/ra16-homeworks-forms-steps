@@ -1,77 +1,62 @@
-import { useState } from 'react';
-import './App.css';
-import StepsForm from './components/StepsForm';
-import StepsTable from './components/StepsTable';
-import { Step } from './interface';
+import React, { useState } from 'react';
 
-function App(): JSX.Element {
-  const [steps, setSteps] = useState([
-    {
-      id: '1',
-      date: '2019-07-20',
-      distance: '15.1',
-    },
-    {
-      id: '2',
-      date: '2019-08-15',
-      distance: '10',
-    }
-  ]
-  );
-  const initEditedStep = {
-    id: '',
-    date: '',
-    distance: '',
-  }
+import { nanoid } from 'nanoid';
 
-  const [ editedStep, setEditedStep ] = useState(initEditedStep);
+import { StepsForm } from './components/StepsForm';
+import { StepsTable } from './components/StepsTable';
+import { TActivity } from './types';
 
-  const changeSteps = (data: Step): void => {
-    setSteps((last) => {
-      const current = [
-        ...last,
-        data
-      ];
-      setEditedStep(initEditedStep);
-      return current.sort((item1, item2) => {
-        if (item1.date > item2.date) {
-          return 1;
-        }
+import './App.scss';
 
-        if (item1.date < item2.date) {
-          return -1;
-        }
+const App: React.FC = () => {
+  const [activityState, setActivityState] = useState<TActivity[]>([]);
+  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [run, setRun] = useState<string>('');
+  const [isChange, setIsChange] = useState<boolean>(false);
 
-        return 0;
+  const addHandler = (activity: { date: Date; run: string }) => {
+    const findSame = activityState.find((item) => item.date.getTime() === activity.date.getTime());
+    if (findSame) {
+      setActivityState((prev) => {
+        return prev.map((item) => {
+          if (item.date.getTime() === activity.date.getTime()) {
+            const newRan = isChange ? Number.parseFloat(activity.run) : Number.parseFloat(item.run) + Number.parseFloat(activity.run);
+            return { ...item, run: newRan.toFixed(1) };
+          }
+          return item;
+        });
       });
-    });
-  }
-
-  const deleteRow = (id: string): void => {
-    setSteps((last) => {
-      return last.filter((item) => item.id != id);
-    });
-  }
-
-  const startEditRow = (id: string): void => {
-    const current = steps.find((item) => item.id === id);
-    if (steps.length > 0) {
-      if (current) {
-        setEditedStep( current );
-
-        setSteps((last) => {
-          return last.filter((item) => item !== current);
-        })
-      }
+      setIsChange(false);
+    } else {
+      setActivityState((prev) => [{ ...activity, id: nanoid() }, ...prev].sort((a, b) => b.date.getTime() - a.date.getTime()));
     }
-  }
+  };
+
+  const removeHandler = (id: string) => {
+    setActivityState((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const changeHandler = (id: string) => {
+    const findActivity: TActivity | undefined = activityState.find((item) => item.id === id);
+    if (findActivity) {
+      setStartDate(findActivity.date);
+      setRun(findActivity.run);
+      setIsChange(true);
+    }
+  };
 
   return (
-    <>
-      <StepsForm onSubmit={changeSteps} body={editedStep} />
-      <StepsTable steps={steps} deleteRow={deleteRow} editRow={startEditRow} />
-    </>
-  )
-}
+    <div className='app'>
+      <div className='uk-container'>
+        <div className='app__form'>
+          <StepsForm onAdd={addHandler} startDate={startDate} run={run} setStartDate={setStartDate} setRun={setRun} />
+        </div>
+        <div className='app__table'>
+          <StepsTable activities={activityState} onRemove={removeHandler} onChange={changeHandler} />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default App;

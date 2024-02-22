@@ -1,0 +1,36 @@
+.body_row {
+  padding: 10px 0;
+  display: flex;
+  justify-content: space-between;
+  color: #d3d3d3;
+
+  @media (any-hover: hover) {
+    &:hover {
+      background-color: #fafafa;
+      color: #b4b4b4;
+    }
+  }
+}
+.cell {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+}
+.table_body_date {
+}
+.table_body_run {
+}
+.table_body_action {
+}
+.body_action_btn {
+  border: none;
+  opacity: 0.3;
+  transition: opacity 0.3s ease-in-out;
+  padding: 0 8px;
+
+  @media (any-hover: hover) {
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
